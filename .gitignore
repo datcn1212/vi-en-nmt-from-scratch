@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+checkpoints/
+data/spm/
+data/raw/
+data/processed/
+data/iwslt15_raw/
+data/iwslt15/
