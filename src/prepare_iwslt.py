@@ -40,6 +40,10 @@ def train_sentencepiece(input_path, model_prefix, vocab_size):
     spm.SentencePieceTrainer.train(
         input=input_path, model_prefix=model_prefix, vocab_size=vocab_size,
         model_type="bpe", pad_id=PAD_ID, bos_id=BOS_ID, eos_id=EOS_ID, unk_id=UNK_ID,
+        # Default 0.9995 silently drops the rarest characters to <unk>, which
+        # is unrecoverable on decode - hits capitalized proper-noun letters
+        # in this corpus (e.g. "Ả" in "Ả Rập"). 1.0 keeps every character seen.
+        character_coverage=1.0,
     )
     sp = spm.SentencePieceProcessor()
     sp.load(model_prefix + ".model")
