@@ -40,3 +40,12 @@ Ran:
     python -m pytest tests/test_preprocess.py -v
 
 Result: found a real bug on first run - SentencePiece's default character_coverage (0.9995) silently mapped a rare capitalized letter ("Ả" in "Ả Rập") to <unk>, unrecoverable on decode. Fixed with character_coverage=1.0, retrained, all 3 tests pass, reran 5x with different random samples to be sure.
+
+## Data pipeline: Vocab, Dataset, collate, toy corpus
+
+Why: shared pipeline both architectures will consume identically, verified on a small hand-written corpus before any model code exists.
+
+Ran:
+    python -m pytest tests/test_data.py -v
+
+Result: found a real bug on first run - tgt_in and tgt_out were padded separately (two independent calls), which looks equivalent to padding once and slicing but is not: at the real-content/padding boundary, eos in tgt_out was replaced by padding instead of landing where tgt_in[1:] expected it, breaking the shift invariant. Fixed by padding the full tgt sequence once, then slicing tgt_in = tgt[:, :-1] and tgt_out = tgt[:, 1:] from the same tensor. All 4 tests pass, reran 5x; also checked the invariant by hand on the full 40-sentence train batch (widest length spread).
