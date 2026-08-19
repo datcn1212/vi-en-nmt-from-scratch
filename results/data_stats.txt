@@ -1,0 +1,30 @@
+=== train (133317 lines) ===
+  en: blank=149  words/line p50=16 p90=38 p99=71 max=628
+    | Rachel Pike : The science behind a climate headline
+    | In 4 minutes , atmospheric chemist Rachel Pike provides a glimpse of the massive scientific effort behind the bold headlines on climate change , with her team -- one of thousands who contributed -- taking a risky flight over the rainforest in pursuit of data on a key molecule .
+    | I &apos;d like to talk to you today about the scale of the scientific effort that goes into making the headlines you see in the paper .
+  vi: blank=112  words/line p50=20 p90=47 p99=89 max=850
+    | Khoa học đằng sau một tiêu đề về khí hậu
+    | Trong 4 phút , chuyên gia hoá học khí quyển Rachel Pike giới thiệu sơ lược về những nỗ lực khoa học miệt mài đằng sau những tiêu đề táo bạo về biến đổi khí hậu , cùng với đoàn nghiên cứu của mình -- hàng ngàn người đã cống hiến cho dự án này -- một chuyến bay mạo hiểm qua rừng già để tìm kiếm thông tin về một phân tử then chốt .
+    | Tôi muốn cho các bạn biết về sự to lớn của những nỗ lực khoa học đã góp phần làm nên các dòng tít bạn thường thấy trên báo .
+
+=== tst2012 (1553 lines) ===
+  en: blank=0  words/line p50=15 p90=32 p99=57 max=93
+    | How can I speak in 10 minutes about the bonds of women over three generations , about how the astonishing strength of those bonds took hold in the life of a four-year-old girl huddled with her young sister , her mother and her grandmother for five days and nights in a small boat in the China Sea more than 30 years ago , bonds that took hold in the life of that small girl and never let go -- that small girl now living in San Francisco and speaking to you today ?
+    | This is not a finished story .
+    | It is a jigsaw puzzle still being put together .
+  vi: blank=0  words/line p50=19 p90=40 p99=69 max=122
+    | Làm sao tôi có thể trình bày trong 10 phút về sợi dây liên kết những người phụ nữ qua ba thế hệ , về việc làm thế nào những sợi dây mạnh mẽ đáng kinh ngạc ấy đã níu chặt lấy cuộc sống của một cô bé bốn tuổi co quắp với đứa em gái nhỏ của cô bé , với mẹ và bà trong suốt năm ngày đêm trên con thuyền nhỏ lênh đênh trên Biển Đông hơn 30 năm trước , những sợi dây liên kết đã níu lấy cuộc đời cô bé ấy và không bao giờ rời đi -- cô bé ấy giờ sống ở San Francisco và đang nói chuyện với các bạn hôm nay ?
+    | Câu chuyện này chưa kết thúc .
+    | Nó là một trò chơi ghép hình vẫn đang được xếp .
+
+=== tst2013 (1268 lines) ===
+  en: blank=0  words/line p50=18 p90=39 p99=67 max=102
+    | When I was little , I thought my country was the best on the planet , and I grew up singing a song called &quot; Nothing To Envy . &quot;
+    | And I was very proud .
+    | In school , we spent a lot of time studying the history of Kim Il-Sung , but we never learned much about the outside world , except that America , South Korea , Japan are the enemies .
+  vi: blank=0  words/line p50=22 p90=49 p99=87 max=123
+    | Khi tôi còn nhỏ , Tôi nghĩ rằng BắcTriều Tiên là đất nước tốt nhất trên thế giới và tôi thường hát bài &quot; Chúng ta chẳng có gì phải ghen tị . &quot;
+    | Tôi đã rất tự hào về đất nước tôi .
+    | Ở trường , chúng tôi dành rất nhiều thời gian để học về cuộc đời của chủ tịch Kim II- Sung , nhưng lại không học nhiều về thế giới bên ngoài , ngoại trừ việc Hoa Kỳ , Hàn Quốc và Nhật Bản là kẻ thù của chúng tôi .
+
