@@ -8,4 +8,4 @@ Locked in before any results exist, to prevent unconsciously bending the protoco
 
 ## Decisions log
 
-(filled in as things get fixed - beam width, max length, vocab size, etc.)
+- Vocab size fixed at 8000, SentencePiece BPE, one model per language, trained on the filtered train split only, then frozen (dev/test only ever encoded with it, never retrained).
