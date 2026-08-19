@@ -1,0 +1,12 @@
+=== train (133222 lines) ===
+  vi: subword length (+bos/eos) p50=22 p90=50 p99=93 max=176
+  en: subword length (+bos/eos) p50=21 p90=46 p99=84 max=177
+=== dev (1553 lines) ===
+  vi: subword length (+bos/eos) p50=21 p90=42 p99=72 max=131
+  en: subword length (+bos/eos) p50=19 p90=39 p99=64 max=106
+=== test (1268 lines) ===
+  vi: subword length (+bos/eos) p50=25 p90=52 p99=95 max=126
+  en: subword length (+bos/eos) p50=22 p90=47 p99=81 max=111
+
+max subword length across all splits: 177
+(lower bound for the model's max sequence length - dev/test are unfiltered, so this can exceed the train-side max_words filter)

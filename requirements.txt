@@ -15,8 +15,11 @@ networkx==3.2.1
 numpy==2.0.2
 packaging==26.3
 pillow==11.3.0
+iniconfig==2.1.0
+pluggy==1.6.0
 portalocker==3.2.0
 pyparsing==3.3.2
+pytest==8.4.2
 python-dateutil==2.9.0.post0
 regex==2026.1.15
 sacrebleu==2.6.0
