@@ -12,6 +12,8 @@ Working notes: design decisions, mistakes made and fixed, anything worth remembe
 - SentencePiece trained only on the filtered train split, per language, never retrained on dev/test - avoids leaking subword frequency into the vocabulary.
 - Length filter (`--max_words`) applies to train only; dev/test stay unfiltered since evaluation has to handle real sentence lengths.
 - Toy corpus reuses the real SentencePiece models (`data/processed/spm/`) instead of training a separate tiny tokenizer - the tokenizer is frozen and shared everywhere, not re-trained per dataset.
+- `test_overfit_20` runs with `dropout=0.0` - it checks memorization capacity and wiring, not generalization, and dropout noise would stop 20 sentences reaching near-zero loss in 300 steps.
+- `test_attention_ignores_padding` checked for real discriminating power: `masked_fill` in `BahdanauAttention` temporarily commented out, rerun. Max attention weight on padding rose to 0.0522 (near-uniform over the ~19-position batch, as expected with no masking) against the < 0.05 bar - test fails correctly when masking is actually broken. Restored, both `test_rnn.py` tests pass again.
 
 ## Bugs found and fixed
 

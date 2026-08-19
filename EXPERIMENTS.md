@@ -49,3 +49,17 @@ Ran:
     python -m pytest tests/test_data.py -v
 
 Result: found a real bug on first run - tgt_in and tgt_out were padded separately (two independent calls), which looks equivalent to padding once and slicing but is not: at the real-content/padding boundary, eos in tgt_out was replaced by padding instead of landing where tgt_in[1:] expected it, breaking the shift invariant. Fixed by padding the full tgt sequence once, then slicing tgt_in = tgt[:, :-1] and tgt_out = tgt[:, 1:] from the same tensor. All 4 tests pass, reran 5x; also checked the invariant by hand on the full 40-sentence train batch (widest length spread).
+
+## RNN model: BahdanauAttention + RNNSeq2Seq, overfit and masking gates
+
+Why: shape/mask bugs are cheap to catch on 20 toy sentences before they cost real training time on the full corpus.
+
+Ran:
+    python -m pytest tests/test_rnn.py -v
+
+Result:
+    test_overfit_20: loss 8.99 -> 0.0031 over 300 steps (dropout off), well under the 0.5 pass bar
+    test_attention_ignores_padding: passes with masking in place
+    negative control: masked_fill in BahdanauAttention commented out, rerun -
+    max attention weight on padding rose to 0.0522 (near-uniform over ~19 positions,
+    as expected with no masking) - test correctly fails. Restored, full suite passes again.
