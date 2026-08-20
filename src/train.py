@@ -1,0 +1,124 @@
+"""Training loop: teacher-forced train/dev epochs, checkpointing on best dev
+loss. Shared across architectures - --arch only changes which model gets built.
+"""
+import argparse
+import os
+
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+
+from data import read_parallel, TranslationDataset, collate_fn
+from rnn_model import RNNSeq2Seq
+from vocab import PAD_ID, Vocab
+
+
+def build_model(arch, src_vocab_size, tgt_vocab_size):
+    if arch == "rnn":
+        return RNNSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID)
+    raise ValueError(f"unknown arch: {arch}")
+
+
+def run_epoch(model, loader, criterion, device, optimizer=None, scheduler=None):
+    train_mode = optimizer is not None
+    model.train(train_mode)
+
+    total_loss, n_batches = 0.0, 0
+    for batch in loader:
+        src = batch["src"].to(device)
+        src_pad_mask = batch["src_pad_mask"].to(device)
+        tgt_in = batch["tgt_in"].to(device)
+        tgt_out = batch["tgt_out"].to(device)
+
+        with torch.set_grad_enabled(train_mode):
+            logits = model(src, src_pad_mask, tgt_in)
+            loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_out.reshape(-1))
+
+        if train_mode:
+            optimizer.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            if scheduler is not None:
+                scheduler.step()
+
+        total_loss += loss.item()
+        n_batches += 1
+    return total_loss / n_batches
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--arch", required=True, choices=["rnn", "transformer"])
+    parser.add_argument("--train_src", required=True)
+    parser.add_argument("--train_tgt", required=True)
+    parser.add_argument("--dev_src", required=True)
+    parser.add_argument("--dev_tgt", required=True)
+    parser.add_argument("--src_spm", required=True)
+    parser.add_argument("--tgt_spm", required=True)
+    parser.add_argument("--save_dir", required=True)
+    parser.add_argument("--epochs", type=int, default=12)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=None)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--max_examples", type=int, default=None,
+                         help="truncate train/dev to this many pairs, for a quick pipeline check")
+    args = parser.parse_args()
+
+    torch.manual_seed(args.seed)
+    device = torch.device(
+        "cuda" if torch.cuda.is_available()
+        else "mps" if torch.backends.mps.is_available()
+        else "cpu"
+    )
+    lr = args.lr if args.lr is not None else (1e-3 if args.arch == "rnn" else 3e-4)
+
+    src_vocab = Vocab(args.src_spm)
+    tgt_vocab = Vocab(args.tgt_spm)
+
+    train_pairs = read_parallel(args.train_src, args.train_tgt)
+    dev_pairs = read_parallel(args.dev_src, args.dev_tgt)
+    if args.max_examples is not None:
+        train_pairs = train_pairs[:args.max_examples]
+        dev_pairs = dev_pairs[:args.max_examples]
+
+    train_loader = DataLoader(
+        TranslationDataset(train_pairs, src_vocab, tgt_vocab),
+        batch_size=args.batch_size, shuffle=True, collate_fn=lambda b: collate_fn(b, PAD_ID),
+    )
+    dev_loader = DataLoader(
+        TranslationDataset(dev_pairs, src_vocab, tgt_vocab),
+        batch_size=args.batch_size, shuffle=False, collate_fn=lambda b: collate_fn(b, PAD_ID),
+    )
+
+    model = build_model(args.arch, len(src_vocab), len(tgt_vocab)).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss(ignore_index=PAD_ID)
+
+    os.makedirs(args.save_dir, exist_ok=True)
+    hyperparams = {
+        "arch": args.arch, "epochs": args.epochs, "batch_size": args.batch_size,
+        "lr": lr, "seed": args.seed,
+    }
+
+    best_dev_loss = float("inf")
+    for epoch in range(1, args.epochs + 1):
+        train_loss = run_epoch(model, train_loader, criterion, device, optimizer=optimizer)
+        dev_loss = run_epoch(model, dev_loader, criterion, device)
+        print(f"epoch {epoch} train_loss {train_loss:.4f} dev_loss {dev_loss:.4f} lr {lr:.6f}",
+              flush=True)
+
+        if dev_loss < best_dev_loss:
+            best_dev_loss = dev_loss
+            torch.save({
+                "model_state_dict": model.state_dict(),
+                "arch": args.arch,
+                "hyperparams": hyperparams,
+                "src_vocab_size": len(src_vocab),
+                "tgt_vocab_size": len(tgt_vocab),
+                "pad_id": PAD_ID,
+            }, os.path.join(args.save_dir, "best.pt"))
+
+
+if __name__ == "__main__":
+    main()

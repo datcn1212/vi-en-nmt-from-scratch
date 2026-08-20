@@ -4,12 +4,14 @@ both against the toy corpus - before either costs real training time.
 import os
 import sys
 
+import pytest
 import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from decode import greedy_decode
 from rnn_model import RNNSeq2Seq
 from data import read_parallel, TranslationDataset, collate_fn
-from vocab import PAD_ID, Vocab
+from vocab import EOS_ID, PAD_ID, SOS_ID, Vocab
 
 HERE = os.path.dirname(__file__)
 TOY_DIR = os.path.join(HERE, "..", "data", "toy")
@@ -27,7 +29,10 @@ def _load_batch(split, n=None):
     return batch, src_vocab, tgt_vocab
 
 
-def test_overfit_20():
+@pytest.fixture(scope="module")
+def overfit_model():
+    # Shared by test_overfit_20 and test_autoregressive_generation: the latter
+    # is only meaningful after the former has actually overfit these 20 pairs.
     batch, src_vocab, tgt_vocab = _load_batch("train", n=20)
     # dropout off: this checks memorization capacity/wiring, not generalization -
     # dropout noise would stop 20 sentences reaching a near-zero loss in 300 steps.
@@ -42,7 +47,32 @@ def test_overfit_20():
         loss.backward()
         optimizer.step()
 
-    assert loss.item() < 0.5, f"final loss {loss.item():.4f} did not drop below 0.5"
+    return model, batch, loss.item()
+
+
+def test_overfit_20(overfit_model):
+    _, _, final_loss = overfit_model
+    assert final_loss < 0.5, f"final loss {final_loss:.4f} did not drop below 0.5"
+
+
+def test_autoregressive_generation(overfit_model):
+    model, batch, _ = overfit_model
+    model.eval()
+
+    matches = 0
+    n = batch["src"].size(0)
+    for i in range(n):
+        src = batch["src"][i:i + 1]
+        mask = batch["src_pad_mask"][i:i + 1]
+        # tgt_out already excludes sos and keeps eos - the same format greedy_decode returns.
+        target = [t for t in batch["tgt_out"][i].tolist() if t != PAD_ID]
+
+        hyp = greedy_decode(model, src, mask, sos_id=SOS_ID, eos_id=EOS_ID)
+        if hyp == target:
+            matches += 1
+
+    rate = matches / n
+    assert rate >= 0.7, f"exact-match rate {rate:.2f} ({matches}/{n})"
 
 
 def test_attention_ignores_padding():

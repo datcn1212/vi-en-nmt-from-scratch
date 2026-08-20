@@ -59,7 +59,47 @@ Ran:
 
 Result:
     test_overfit_20: loss 8.99 -> 0.0031 over 300 steps (dropout off), well under the 0.5 pass bar
+    test_autoregressive_generation: 20/20 exact match, greedy decode against the overfit model
     test_attention_ignores_padding: passes with masking in place
     negative control: masked_fill in BahdanauAttention commented out, rerun -
     max attention weight on padding rose to 0.0522 (near-uniform over ~19 positions,
     as expected with no masking) - test correctly fails. Restored, full suite passes again.
+
+## train.py pipeline check on real data
+
+Why: catch CLI/device/checkpoint wiring bugs on a tiny slice before committing to a multi-hour run.
+
+Ran:
+    python src/train.py --arch rnn --train_src data/processed/train.vi --train_tgt data/processed/train.en \
+      --dev_src data/processed/dev.vi --dev_tgt data/processed/dev.en \
+      --src_spm data/processed/spm/src_spm.model --tgt_spm data/processed/spm/tgt_spm.model \
+      --save_dir checkpoints/smoketest --epochs 2 --batch_size 32 --max_examples 64
+
+Result:
+    epoch 1 train_loss 8.9548 dev_loss 8.8628 lr 0.001000
+    epoch 2 train_loss 8.6584 dev_loss 8.6109 lr 0.001000
+    checkpoint written with all required fields (model_state_dict, arch, hyperparams,
+    src_vocab_size, tgt_vocab_size, pad_id) - loaded back and checked by hand.
+
+## RNN baseline: 12 epochs, full corpus
+
+Why: first real result for this architecture - the dev loss curve decides which checkpoint gets used, and whether it overfits the way the toy-scale runs hinted at.
+
+Ran:
+    bash scripts/run_rnn_baseline.sh
+
+Result:
+    epoch 1   train_loss 3.8438  dev_loss 3.1085
+    epoch 2   train_loss 2.8669  dev_loss 2.9117
+    epoch 3   train_loss 2.5702  dev_loss 2.8329
+    epoch 4   train_loss 2.3943  dev_loss 2.8068
+    epoch 5   train_loss 2.2727  dev_loss 2.8050   (best - checkpoint)
+    epoch 6   train_loss 2.1815  dev_loss 2.8124
+    epoch 7   train_loss 2.1086  dev_loss 2.8154
+    epoch 8   train_loss 2.0503  dev_loss 2.8225
+    epoch 9   train_loss 2.0014  dev_loss 2.8326
+    epoch 10  train_loss 1.9607  dev_loss 2.8414
+    epoch 11  train_loss 1.9240  dev_loss 2.8631
+    epoch 12  train_loss 1.8925  dev_loss 2.8764
+
+Dev loss falls through epoch 5, then rises through epoch 12, while train loss keeps falling the whole run - overfits past epoch 5. Checkpoint stopped updating after epoch 5. Total wall clock ~11.4h for 12 epochs (57 min/epoch average).
