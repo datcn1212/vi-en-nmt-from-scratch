@@ -37,7 +37,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--split", required=True, choices=["dev", "test"])
-    parser.add_argument("--limit", type=int, default=None, help="for a fixed dev subset, e.g. dev500")
+    parser.add_argument("--limit", type=int, default=None, help="use only the first N pairs")
+    parser.add_argument("--indices_file", default=None,
+                         help="one 0-based line index per line - for a fixed, reproducible subset "
+                              "like dev500 (random sample, not just a prefix)")
     parser.add_argument("--decode", required=True, choices=["greedy", "beam"])
     parser.add_argument("--beam_width", type=int, default=5)
     parser.add_argument("--max_len", type=int, default=50)
@@ -50,7 +53,11 @@ def main():
     model = load_model(args.checkpoint)
 
     pairs = read_parallel(os.path.join(DATA_DIR, f"{args.split}.vi"), os.path.join(DATA_DIR, f"{args.split}.en"))
-    if args.limit is not None:
+    if args.indices_file is not None:
+        with open(args.indices_file, encoding="utf-8") as f:
+            indices = [int(line) for line in f]
+        pairs = [pairs[i] for i in indices]
+    elif args.limit is not None:
         pairs = pairs[:args.limit]
 
     hyps = []

@@ -14,12 +14,17 @@ from transformer_model import TransformerSeq2Seq
 from vocab import PAD_ID, Vocab
 
 
-def build_model(arch, src_vocab_size, tgt_vocab_size):
+def build_model(arch, src_vocab_size, tgt_vocab_size, xavier_init=False):
     if arch == "rnn":
-        return RNNSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID)
+        return RNNSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID, xavier_init=xavier_init)
     if arch == "transformer":
-        return TransformerSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID)
+        return TransformerSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID, xavier_init=xavier_init)
     raise ValueError(f"unknown arch: {arch}")
+
+
+def noam_lr_lambda(step, d_model, warmup_steps):
+    step = max(step, 1)
+    return d_model ** (-0.5) * min(step ** (-0.5), step * warmup_steps ** (-1.5))
 
 
 def run_epoch(model, loader, criterion, device, optimizer=None, scheduler=None):
@@ -66,6 +71,9 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max_examples", type=int, default=None,
                          help="truncate train/dev to this many pairs, for a quick pipeline check")
+    parser.add_argument("--warmup_steps", type=int, default=0,
+                         help="Noam warmup, only takes effect when > 0 and --arch transformer")
+    parser.add_argument("--xavier_init", action="store_true")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -94,21 +102,35 @@ def main():
         batch_size=args.batch_size, shuffle=False, collate_fn=lambda b: collate_fn(b, PAD_ID),
     )
 
-    model = build_model(args.arch, len(src_vocab), len(tgt_vocab)).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    model = build_model(args.arch, len(src_vocab), len(tgt_vocab), xavier_init=args.xavier_init).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_ID)
+
+    use_warmup = args.warmup_steps > 0 and args.arch == "transformer"
+    if use_warmup:
+        # lr=1.0 here is not a multiplier - noam_lr_lambda already returns the full
+        # learning rate value, so Adam's own lr just has to be 1 to pass it through
+        # unscaled. The easiest line in this file to misread.
+        optimizer = torch.optim.Adam(model.parameters(), lr=1.0, betas=(0.9, 0.98), eps=1e-9)
+        d_model = model.d_model
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer, lr_lambda=lambda step: noam_lr_lambda(step, d_model, args.warmup_steps)
+        )
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        scheduler = None
 
     os.makedirs(args.save_dir, exist_ok=True)
     hyperparams = {
         "arch": args.arch, "epochs": args.epochs, "batch_size": args.batch_size,
-        "lr": lr, "seed": args.seed,
+        "lr": lr, "seed": args.seed, "warmup_steps": args.warmup_steps, "xavier_init": args.xavier_init,
     }
 
     best_dev_loss = float("inf")
     for epoch in range(1, args.epochs + 1):
-        train_loss = run_epoch(model, train_loader, criterion, device, optimizer=optimizer)
+        train_loss = run_epoch(model, train_loader, criterion, device, optimizer=optimizer, scheduler=scheduler)
         dev_loss = run_epoch(model, dev_loader, criterion, device)
-        print(f"epoch {epoch} train_loss {train_loss:.4f} dev_loss {dev_loss:.4f} lr {lr:.6f}",
+        current_lr = optimizer.param_groups[0]["lr"]
+        print(f"epoch {epoch} train_loss {train_loss:.4f} dev_loss {dev_loss:.4f} lr {current_lr:.6f}",
               flush=True)
 
         if dev_loss < best_dev_loss:

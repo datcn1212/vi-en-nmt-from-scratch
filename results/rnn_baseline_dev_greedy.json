@@ -1,0 +1,11 @@
+{
+  "system": "rnn_baseline",
+  "split": "dev",
+  "decode": "greedy",
+  "beam_width": null,
+  "bleu": 15.566193008150853,
+  "signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+  "n_sentences": 500,
+  "checkpoint": "checkpoints/rnn_baseline/best.pt",
+  "timestamp": "2026-08-21T11:12:00.718098"
+}

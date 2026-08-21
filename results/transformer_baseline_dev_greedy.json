@@ -1,0 +1,11 @@
+{
+  "system": "transformer_baseline",
+  "split": "dev",
+  "decode": "greedy",
+  "beam_width": null,
+  "bleu": 8.186405196045099,
+  "signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+  "n_sentences": 500,
+  "checkpoint": "checkpoints/transformer_baseline/best.pt",
+  "timestamp": "2026-08-21T11:10:46.705867"
+}

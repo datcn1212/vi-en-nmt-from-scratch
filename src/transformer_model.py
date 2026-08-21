@@ -91,7 +91,7 @@ class DecoderLayer(nn.Module):
 
 class TransformerSeq2Seq(nn.Module):
     def __init__(self, src_vocab_size, tgt_vocab_size, d_model=128, num_heads=8, num_layers=2,
-                 d_ff=512, max_len=256, dropout=0.1, pad_id=0):
+                 d_ff=512, max_len=256, dropout=0.1, pad_id=0, xavier_init=False):
         super().__init__()
         self.d_model = d_model
         self.pad_id = pad_id
@@ -106,6 +106,11 @@ class TransformerSeq2Seq(nn.Module):
             [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)]
         )
         self.out_proj = nn.Linear(d_model, tgt_vocab_size)
+
+        if xavier_init:
+            for p in self.parameters():
+                if p.dim() > 1:
+                    nn.init.xavier_uniform_(p)
 
     def encode(self, src, src_pad_mask):
         x = self.src_embedding(src) * math.sqrt(self.d_model)
