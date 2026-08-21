@@ -1,0 +1,11 @@
+{
+  "system": "smoketest",
+  "split": "dev",
+  "decode": "greedy",
+  "beam_width": null,
+  "bleu": 4.495883179128969,
+  "signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+  "n_sentences": 5,
+  "checkpoint": "checkpoints/transformer_baseline/best.pt",
+  "timestamp": "2026-08-20T23:01:08.919143"
+}

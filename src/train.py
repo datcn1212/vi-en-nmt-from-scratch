@@ -10,12 +10,15 @@ from torch.utils.data import DataLoader
 
 from data import read_parallel, TranslationDataset, collate_fn
 from rnn_model import RNNSeq2Seq
+from transformer_model import TransformerSeq2Seq
 from vocab import PAD_ID, Vocab
 
 
 def build_model(arch, src_vocab_size, tgt_vocab_size):
     if arch == "rnn":
         return RNNSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID)
+    if arch == "transformer":
+        return TransformerSeq2Seq(src_vocab_size, tgt_vocab_size, pad_id=PAD_ID)
     raise ValueError(f"unknown arch: {arch}")
 
 

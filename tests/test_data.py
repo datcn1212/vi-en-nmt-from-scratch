@@ -1,6 +1,4 @@
-"""Tests for src/data.py and src/vocab.py against the toy corpus. 
-Reuses the SentencePiece models already trained in data/processed/spm/ 
-- the tokenizer is frozen and shared everywhere, not retrained per dataset.
+"""Tests for src/data.py and src/vocab.py against the toy corpus
 """
 import os
 import sys

@@ -1,6 +1,4 @@
-"""Checks the output of src/prepare_iwslt.py in data/processed/. Assumes that
-script has already been run - training SentencePiece here would be too slow
-for a test.
+"""Checks the output of src/prepare_iwslt.py in data/processed/
 """
 import glob
 import os
