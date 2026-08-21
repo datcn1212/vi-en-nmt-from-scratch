@@ -1,0 +1,12 @@
+epoch 1 train_loss 5.0239 dev_loss 3.6489 lr 0.001370
+epoch 2 train_loss 3.4395 dev_loss 3.0017 lr 0.000969
+epoch 3 train_loss 2.9882 dev_loss 2.7964 lr 0.000791
+epoch 4 train_loss 2.7909 dev_loss 2.6875 lr 0.000685
+epoch 5 train_loss 2.6722 dev_loss 2.6364 lr 0.000613
+epoch 6 train_loss 2.5918 dev_loss 2.5877 lr 0.000559
+epoch 7 train_loss 2.5327 dev_loss 2.5583 lr 0.000518
+epoch 8 train_loss 2.4868 dev_loss 2.5347 lr 0.000484
+epoch 9 train_loss 2.4497 dev_loss 2.5051 lr 0.000457
+epoch 10 train_loss 2.4175 dev_loss 2.4900 lr 0.000433
+epoch 11 train_loss 2.3903 dev_loss 2.4839 lr 0.000413
+epoch 12 train_loss 2.3682 dev_loss 2.4619 lr 0.000395

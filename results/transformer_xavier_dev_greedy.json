@@ -1,0 +1,11 @@
+{
+  "system": "transformer_xavier",
+  "split": "dev",
+  "decode": "greedy",
+  "beam_width": null,
+  "bleu": 17.961597765635535,
+  "signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+  "n_sentences": 500,
+  "checkpoint": "checkpoints/transformer_xavier/best.pt",
+  "timestamp": "2026-08-21T13:18:18.372430"
+}
